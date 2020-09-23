@@ -1,15 +1,19 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using TetrisEmpire.Rooms;
 
 namespace TetrisEmpire
 {
-    public class Game1 : Game
+    public class MainGame : Game
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        public Game1()
+        private RoomManager _roomManager;
+
+
+        public MainGame()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
@@ -18,7 +22,8 @@ namespace TetrisEmpire
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
+            _roomManager = new RoomManager(Services);
+            Services.AddService(_roomManager);
 
             base.Initialize();
         }
@@ -26,16 +31,15 @@ namespace TetrisEmpire
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            // TODO: use this.Content to load your game content here
+            _roomManager.LoadMainMenu();
         }
 
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
+            //if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            //    Exit();
 
-            // TODO: Add your update logic here
+            _roomManager.CurrentRoom?.Update(gameTime);
 
             base.Update(gameTime);
         }
@@ -44,7 +48,7 @@ namespace TetrisEmpire
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            // TODO: Add your drawing code here
+            _roomManager.CurrentRoom?.Draw(gameTime, _spriteBatch);
 
             base.Draw(gameTime);
         }
