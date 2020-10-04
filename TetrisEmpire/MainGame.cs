@@ -1,45 +1,66 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using TetrisEmpire.Rooms;
+using System;
+using TetrisEmpire.Components.Rooms;
 
 namespace TetrisEmpire
 {
     public class MainGame : Game
     {
-        private GraphicsDeviceManager _graphics;
-        private SpriteBatch _spriteBatch;
+        public const int WorldWidth = 1920;
+        public const int WorldHeight = 1080;
 
-        private RoomManager _roomManager;
-
+        public GraphicsDeviceManager GraphicsDeviceManager { get; private set; }
+        public SpriteBatch SpriteBatch { get; private set; }
+        public RoomManager RoomManager { get; private set; }
+        public Matrix ScaleMatrix { get; private set; }
 
         public MainGame()
         {
-            _graphics = new GraphicsDeviceManager(this);
+            GraphicsDeviceManager = new GraphicsDeviceManager(this);
+            RoomManager = new RoomManager(this);
+
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
         }
 
         protected override void Initialize()
         {
-            _roomManager = new RoomManager(Services);
-            Services.AddService(_roomManager);
+            Window.ClientSizeChanged += OnResize;
+            Window.AllowUserResizing = true;
+            OnResize(this, new EventArgs());
+
+            SpriteBatch = new SpriteBatch(GraphicsDevice);
+            Components.Add(RoomManager);
 
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
-            _spriteBatch = new SpriteBatch(GraphicsDevice);
-            _roomManager.LoadMainMenu();
+            RoomManager.LoadMainMenu();
+
+            base.LoadContent();
         }
 
+        private bool wasFullscreenChanged = false;
         protected override void Update(GameTime gameTime)
         {
-            //if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-            //    Exit();
-
-            _roomManager.CurrentRoom?.Update(gameTime);
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+                Exit();
+            if (Keyboard.GetState().IsKeyDown(Keys.F11))
+            {
+                if (!wasFullscreenChanged)
+                {
+                    GraphicsDeviceManager.ToggleFullScreen();
+                    wasFullscreenChanged = true;
+                }
+            }
+            else
+            {
+                wasFullscreenChanged = false;
+            }
 
             base.Update(gameTime);
         }
@@ -48,9 +69,24 @@ namespace TetrisEmpire
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            _roomManager.CurrentRoom?.Draw(gameTime, _spriteBatch);
-
+            SpriteBatch.Begin(SpriteSortMode.Deferred, transformMatrix: ScaleMatrix);
             base.Draw(gameTime);
+            SpriteBatch.End();
+        }
+
+        protected void OnResize(Object sender, EventArgs e)
+        {
+            Window.ClientSizeChanged -= OnResize;
+
+            GraphicsDeviceManager.PreferredBackBufferWidth = Window.ClientBounds.Width;
+            GraphicsDeviceManager.PreferredBackBufferHeight = Window.ClientBounds.Height;
+            
+            GraphicsDeviceManager.ApplyChanges();
+            Window.ClientSizeChanged += OnResize;
+
+            float scaleX = (float)Window.ClientBounds.Width / WorldWidth;
+            float scaleY = (float)Window.ClientBounds.Height / WorldHeight;
+            ScaleMatrix = Matrix.CreateScale(new Vector3(scaleX, scaleY, 1));
         }
     }
 }
