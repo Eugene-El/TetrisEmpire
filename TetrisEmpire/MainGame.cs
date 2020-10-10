@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using TetrisEmpire.Components.Rooms;
+using TetrisEmpire.Components.UI;
 
 namespace TetrisEmpire
 {
@@ -15,11 +16,13 @@ namespace TetrisEmpire
         public SpriteBatch SpriteBatch { get; private set; }
         public RoomManager RoomManager { get; private set; }
         public Matrix ScaleMatrix { get; private set; }
+        public Cursor Cursor { get; private set; }
 
         public MainGame()
         {
             GraphicsDeviceManager = new GraphicsDeviceManager(this);
             RoomManager = new RoomManager(this);
+            Cursor = new Cursor(this, new Vector2(20, 23));
 
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
@@ -32,6 +35,7 @@ namespace TetrisEmpire
             OnResize(this, new EventArgs());
 
             SpriteBatch = new SpriteBatch(GraphicsDevice);
+            Components.Add(Cursor);
             Components.Add(RoomManager);
 
             base.Initialize();
